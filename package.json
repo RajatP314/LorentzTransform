@@ -4,7 +4,8 @@
   "description": "Visualizer for Lorentz Transforms",
   "main": "index.js",
   "scripts": {
-    "test": "console.log('hi')"
+    "test": "console.log('hi')",
+     "start": "node index.js"
   },
   "author": "ScalarField",
   "dependencies": {
