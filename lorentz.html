@@ -82,8 +82,8 @@ window.onresize = resize;
 socket.on('draw_update', (update)=>{
 	points = update.points;
 	for(let point of points){
-		point.x = ct.width/2 + (point.x-cx)*co.width/update.w;
-		point.y = ct.height/2 + (point.y-cy)*co.height/update.w;
+		point.x = ct.width/2 + (point.x-update.w/2)*co.width/update.w;
+		point.y = ct.height/2 + (point.y-update.w/2)*co.height/update.w;
 	}
 	draw();
 });
