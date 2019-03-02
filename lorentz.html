@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Lorentz Transform Visualizer</title>
+		<meta charset="utf-8" />
+		<style>
+canvas{
+	margin: -2px;
+}
+		</style>
+		<script src="canvas.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+	</head>
+	<body>
+		<canvas style="border:1px solid;" id="original"></canvas>
+		<canvas style="border:1px solid;" id="transform"></canvas>
+		<div>
+			<p>
+				v/c ratio: 
+				<input type="range" min="-1" max="1" step="0.01" id="betaInput"/>
+				<span id="value">0</span>
+			</p>
+			<p>
+				<button type="button">Clear</button>
+			</p>
+		</div>
+		<script>
+let socket = io();
+		
+let drawable = false;
+
+let beta = 0;
+let gamma = (x)=>1/Math.sqrt(1-x**2);
+
+let points = [];
+
+let co = document.querySelector("#original");
+let fco = co.getContext("2d");
+let r = co.getBoundingClientRect();
+
+let ct = document.querySelector("#transform");
+let fct = ct.getContext("2d");
+
+ct.width = ct.height = co.width = co.height = document.body.clientWidth/2;
+let w = ct.width;
+let cx = ct.width/2;
+let cy = ct.height/2;
+
+let betaSlider = document.querySelector("#betaInput");
+let betaValue = document.querySelector("#value");
+betaSlider.value = 0;
+betaSlider.oninput = ()=>{
+	beta = betaSlider.value;
+	betaValue.innerText = beta;
+	fct.clearRect(0, 0, ct.width, ct.height);
+	draw();
+}
+
+document.querySelector("button").onclick = () => {
+	points = [];
+	fct.clearRect(0, 0, ct.width, ct.height);
+	fco.clearRect(0, 0, co.width, co.height);
+}
+
+co.onmousedown = ()=>{drawable = true};
+co.onmouseup = ()=>{
+	drawable = false
+	if(points.length > 0){
+		points[points.length-1].connect = false;
+	}
+	};
+co.onmousemove = (event)=>{
+	if(drawable){
+		let mx = event.clientX - r.left;
+		let my = event.clientY - r.top;
+		points.push(new Point(mx, my));
+		draw();
+	}
+}
+
+window.onresize = resize;
+socket.on('draw_update', (update)=>{
+	points = update.points;
+	for(let point of points){
+		point.x = ct.width/2 + (point.x-cx)*co.width/update.w;
+		point.y = ct.height/2 + (point.y-cy)*co.height/update.w;
+	}
+	draw();
+});
+
+function resize(){
+	ct.width = ct.height = co.width = co.height = document.body.clientWidth/2;
+	for(let point of points){
+		point.x = ct.width/2 + (point.x-cx)*co.width/w;
+		point.y = ct.height/2 + (point.y-cy)*co.height/w;
+	}
+	w = ct.width;
+	cx = ct.width/2;
+	cy = ct.height/2;
+	draw();
+}
+
+function getLorentz(b, g){
+	return [ [g, -1*b*g], [-1*b*g, g] ];
+}
+
+function transform(matrix, vector, cx, cy){
+	let vx = vector.x-cx, vy = vector.y-cy;
+	let x = matrix[0][0]*vx + matrix[0][1]*vy;
+	let y = matrix[1][0]*vx + matrix[1][1]*vy;
+	return new Point(x+cx, y+cy, vector.connect);
+}
+
+function draw(){
+	drawPoints(points, fco);
+	drawPoints(points.map( (p)=>transform(getLorentz(beta, gamma(beta)), p, cx, cy) ), fct);
+}	
+
+
+		</script>
+	</body>
+</html>

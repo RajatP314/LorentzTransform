@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Canvas for Lorentz Transform Visualizer</title>
+		<meta charset="utf-8" />
+		<style>
+canvas{
+	margin: -2px;
+}
+		</style>
+		<script src="canvas.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+	</head>
+	<body>
+		<canvas style="border:1px solid;" id="original"></canvas>
+		<div>
+			<p>
+				<button type="button">Clear</button>
+			</p>
+		</div>
+		<script>
+let socket = io();
+		
+let drawable = false;
+
+let points = [];
+
+let co = document.querySelector("#original");
+let fco = co.getContext("2d");
+let r = co.getBoundingClientRect();
+
+co.width = co.height = Math.min(window.innerHeight, window.innerWidth)*0.9;
+let w = co.width;
+let cx = co.width/2;
+let cy = co.height/2;
+
+document.querySelector("button").onclick = () => {
+	points = [];
+	fct.clearRect(0, 0, ct.width, ct.height);
+	fco.clearRect(0, 0, co.width, co.height);
+}
+
+co.ontouchstart = ()=>{drawable = true};
+co.ontouchend = ()=>{
+	drawable = false
+	if(points.length > 0){
+		points[points.length-1].connect = false;
+	}
+};
+co.ontouchmove = (event)=>{
+	if(drawable){
+		let mx = event.targetTouches[0].clientX - r.left;
+		let my = event.targetTouches[0].clientY - r.top;
+		points.push(new Point(mx, my));
+		socket.emit('draw_update', {
+			points: points,
+			w: w
+		});
+		draw();
+	}
+}
+
+function drawPoints(points, ctx){
+	ctx.lineWidth = 3;
+	ctx.beginPath();
+	ctx.moveTo(points[0].x, points[0].y);
+	
+	for(let i=1;i<points.length;i++){
+		if(points[i-1].connect){
+			ctx.lineTo(points[i].x, points[i].y);
+		} else {
+			ctx.moveTo(points[i].x, points[i].y);
+		}
+	}
+	
+	ctx.stroke();
+	ctx.closePath();
+}	
+
+function draw(){
+	drawPoints(points, fco);
+}	
+
+
+		</script>
+	</body>
+</html>

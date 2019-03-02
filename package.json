@@ -1,0 +1,19 @@
+{
+  "name": "relativity",
+  "version": "0.1.0",
+  "description": "Visualizer for Lorentz Transforms",
+  "main": "index.js",
+  "scripts": {
+    "test": "console.log('hi')"
+  },
+  "author": "ScalarField",
+  "dependencies": {
+    "express": "^4.16.3",
+    "serve-static": "^1.13.2",
+    "socket.io": "^2.1.0"
+  },
+  "engines": {
+    "node": "8.11.1"
+  }
+  "license": "ISC"
+}
