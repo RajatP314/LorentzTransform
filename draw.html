@@ -48,6 +48,7 @@ co.ontouchend = ()=>{
 	}
 };
 co.ontouchmove = (event)=>{
+	event.preventDefault();
 	if(drawable){
 		let mx = event.targetTouches[0].clientX - r.left;
 		let my = event.targetTouches[0].clientY - r.top;
